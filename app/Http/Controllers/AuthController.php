@@ -11,6 +11,24 @@ use Illuminate\Auth\Events\Verified;
 
 class AuthController extends Controller
 {
+    public function profile(){
+            $id = auth()->user()->id;
+            $user = User::where('id', $id)->get();
+    
+            if(count($user) > 0){
+                return response([
+                    'status' => 'success',
+                    'data' => $user
+                ], 200);
+            }
+    
+        return response([
+            'status' => 'error',
+            'message' => 'Empty',
+            'data' => null
+        ], 400); 
+    }
+    
     public function verify(Request $request) {
         $user = User::findOrFail($request->id);
 
@@ -33,6 +51,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
+            'status' => 'success',
             "message" => "Email verified successfully!",
             "success" => true
         ]);
@@ -53,6 +72,7 @@ class AuthController extends Controller
         if ($validate->fails()) {
             $errors = $validate->errors();
             $response = [
+                'status' => 'error',
                 'message' => 'Registrasi gagal. Silakan periksa semua bagian yang ditandai.',
                 'errors' => $errors->toArray()
             ];
@@ -72,17 +92,94 @@ class AuthController extends Controller
         ], 200);
     }
 
+    
+    public function update(Request $request)
+    {
+        $id = auth()->user()->id;
+        $user = User::find($id);
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'no_telp' => 'required',
+            'alamat' => 'required',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Update gagal. Silakan periksa semua bagian yang ditandai.',
+                'errors' => $validator->errors()->toArray()
+            ], 400);
+        }
+        if ($request->hasFile('gambar')) {
+            $filenameWithExt = $request->file('gambar')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('gambar')->getClientOriginalExtension();
+            $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+            $request->file('gambar')->storeAs('images', $fileNameToStore, 'images');
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
+
+        $user->update([
+            'gambar' => $fileNameToStore,
+            'name' => $request->input('name'),
+            'no_telp' => $request->input('no_telp'),
+            'alamat' => $request->input('alamat'),
+        ]);
+        $user->refresh();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Update Data Berhasil !',
+            'data' => $user
+        ], 200);
+    }
+
+    public function updateAdmin(Request $request, User $user)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'no_telp' => 'required',
+            'alamat' => 'required',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Update gagal. Silakan periksa semua bagian yang ditandai.',
+                'errors' => $validator->errors()->toArray()
+            ], 400);
+        }
+        if ($request->hasFile('gambar')) {
+            $filenameWithExt = $request->file('gambar')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('gambar')->getClientOriginalExtension();
+            $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+            $request->file('gambar')->storeAs('images', $fileNameToStore, 'images');
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
+
+        $user->update([
+            'gambar' => $fileNameToStore,
+            'name' => $request->input('name'),
+            'no_telp' => $request->input('no_telp'),
+            'alamat' => $request->input('alamat'),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Update Data Berhasil !',
+            'data' => $user
+        ], 200);
+    }
+
     public function loginUser(Request $request)
     {
         $loginData = $request->all();
-    
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < 10; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
-        }
-    
         $validate = Validator::make($loginData, [
             'email' => 'required',
             'password' => 'required',
@@ -98,21 +195,85 @@ class AuthController extends Controller
             return response(['message' => 'Email not verified. Please verify your email first.'], 401);
         }
     
-        if (Auth::guard('User')->attempt($loginData)) {
+        if (Auth::guard('web')->attempt($loginData)) {
             $users = Auth::user();
-            $token = $randomString;
+            $token = $users->createToken('Authentication Token',['web'])->plainTextToken;
     
             return response([
                 'message' => 'Authenticated',
                 'data' => [
-                    'message' => 'berhasil login sebagai customer',
-                    'data' => $users,
-                    'token' => $token,
+                    'status' => 'success',
+                    'User' => $users,
+                    'token_type' => 'Bearer',
+                    'access_token' => $token,
                 ],
             ]);
         } else {
             return response(['message' => 'Invalid Credentials user'], 401);
         }
+    }
+    
+    public function loginAdmin(Request $request)
+    {
+        $loginData = $request->all();
+        $validate = Validator::make($loginData, [
+            'email' => 'required',
+            'password' => 'required',
+        ]);
+    
+        if ($validate->fails()) {
+            return response(['message' => $validate->errors()->first(), 'errors' => $validate->errors()], 400);
+        }
+        
+    
+        if (Auth::guard('admin')->attempt($loginData)) {
+            $users = Auth::guard('admin')->user();
+            $token = $users->createToken('Authentication Token', ['admin'])->plainTextToken;
+    
+            return response([
+                'message' => 'Authenticated',
+                'data' => [
+                    'status' => 'success',
+                    'User' => $users,
+                    'token_type' => 'Bearer',
+                    'access_token' => $token,
+                ],
+            ]);
+        } else {
+            return response(['message' => 'Invalid Credentials user'], 401);
+        }
+    }
+
+    
+    public function logout(Request $request)
+    {
+        if (Auth::guard('sanctum')->check()) {
+            $user = Auth::guard('sanctum')->user();
+            $user->tokens->each(function ($token) {
+                $token->delete();
+            });
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logout Success',
+                'user' => $user
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated',
+            ], 401); 
+        }
+    }
+
+    public function destroy(User $user){
+        $user->delete();
+    
+        return response([
+            'status' => 'success',
+            'message' => 'User deleted successfully',
+            'data' => $user
+        ], 200);
     }
     
 

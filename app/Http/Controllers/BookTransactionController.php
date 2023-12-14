@@ -10,15 +10,18 @@ use Illuminate\Support\Facades\Validator;
 class BookTransactionController extends Controller
 {
     public function index(){
-        $booksTransaction = BooksTransaction::all();
-
-        if(count($booksTransaction) > 0){
-            return response([
-                'data' => $booksTransaction
-            ], 200);
-        }
-
+            $id = auth()->user()->id;
+            $booksTransaction = BooksTransaction::where('id_user', $id)->get();
+    
+            if(count($booksTransaction) > 0){
+                return response([
+                    'status' => 'success',
+                    'data' => $booksTransaction
+                ], 200);
+            }
+    
         return response([
+            'status' => 'error',
             'message' => 'Empty',
             'data' => null
         ], 400); 
@@ -33,6 +36,7 @@ class BookTransactionController extends Controller
 
         if ($validator->fails()) {
             return response([
+                'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
             ], 400);

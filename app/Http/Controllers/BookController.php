@@ -13,11 +13,13 @@ class BookController extends Controller
 
         if(count($books) > 0){
             return response([
+                'status' => 'success',
                 'data' => $books
             ], 200);
         }
 
         return response([
+            'status' => 'error',
             'message' => 'Empty',
             'data' => null
         ], 400); 
@@ -34,6 +36,7 @@ class BookController extends Controller
 
         if ($validator->fails()) {
             return response([
+                'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
             ], 400);
@@ -54,8 +57,19 @@ class BookController extends Controller
     }
 
     public function update(Request $request, Books $books) {
-        $id = $books->id_buku;
-    
+        $validator = Validator::make($request->all(), [
+            'judul_buku' => 'required',
+            'penulis_buku' => 'required',
+            'tahun_buku' => 'required',
+            'stock_buku' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
         $books->update([
             'judul_buku' => $request->input('judul_buku'),
             'penulis_buku' => $request->input('penulis_buku'),
@@ -63,7 +77,6 @@ class BookController extends Controller
             'stock_buku' => $request->input('stock_buku'),
         ]);
     
-        // Reload the model instance after the update
         $books->refresh();
     
         return response([
