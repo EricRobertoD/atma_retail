@@ -102,7 +102,6 @@ class AuthController extends Controller
             'name' => 'required',
             'no_telp' => 'required',
             'alamat' => 'required',
-            'gambar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
