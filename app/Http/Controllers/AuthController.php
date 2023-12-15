@@ -102,6 +102,7 @@ class AuthController extends Controller
             'name' => 'required',
             'no_telp' => 'required',
             'alamat' => 'required',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -117,10 +118,12 @@ class AuthController extends Controller
             $extension = $request->file('gambar')->getClientOriginalExtension();
             $fileNameToStore = $filename . '_' . time() . '.' . $extension;
             $request->file('gambar')->storeAs('images', $fileNameToStore, 'images');
-            $user->update(['gambar' => $fileNameToStore]);
-        } 
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
 
         $user->update([
+            'gambar' => $fileNameToStore,
             'name' => $request->input('name'),
             'no_telp' => $request->input('no_telp'),
             'alamat' => $request->input('alamat'),
@@ -140,6 +143,7 @@ class AuthController extends Controller
             'name' => 'required',
             'no_telp' => 'required',
             'alamat' => 'required',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -149,7 +153,18 @@ class AuthController extends Controller
                 'errors' => $validator->errors()->toArray()
             ], 400);
         }
+        if ($request->hasFile('gambar')) {
+            $filenameWithExt = $request->file('gambar')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('gambar')->getClientOriginalExtension();
+            $fileNameToStore = $filename . '_' . time() . '.' . $extension;
+            $request->file('gambar')->storeAs('images', $fileNameToStore, 'images');
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
+
         $user->update([
+            'gambar' => $fileNameToStore,
             'name' => $request->input('name'),
             'no_telp' => $request->input('no_telp'),
             'alamat' => $request->input('alamat'),

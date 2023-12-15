@@ -18,12 +18,12 @@ class BooksTransaction extends Model
         'status',
     ];
 
-    public function user()
+    public function User()
     {
         return $this->belongsTo(User::class, 'id_user');
     }
 
-    public function book()
+    public function Books()
     {
         return $this->belongsTo(Books::class, 'id_buku');
     }

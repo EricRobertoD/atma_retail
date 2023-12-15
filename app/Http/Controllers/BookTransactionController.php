@@ -6,12 +6,14 @@ use App\Models\Books;
 use App\Models\BooksTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+
 
 class BookTransactionController extends Controller
 {
     public function index(){
             $id = auth()->user()->id;
-            $booksTransaction = BooksTransaction::where('id_user', $id)->get();
+            $booksTransaction = BooksTransaction::where('id_user', $id)->with('Books')->with('User')->get();
     
             if(count($booksTransaction) > 0){
                 return response([
@@ -28,8 +30,8 @@ class BookTransactionController extends Controller
     }
     
     public function store(Request $request){
+        $id = auth()->user()->id;
         $validator = Validator::make($request->all(), [
-            'id_user' => 'required',
             'id_buku' => 'required',
             'tanggal_pinjam' => 'required',
         ]);
@@ -51,7 +53,7 @@ class BookTransactionController extends Controller
         }
 
         $booksTransaction = BooksTransaction::create([
-            'id_user' => $request->input('id_user'),
+            'id_user' => $id,
             'id_buku' => $request->input('id_buku'),
             'tanggal_pinjam' => $request->input('tanggal_pinjam'),
             'status' => "Sedang Dipinjam",

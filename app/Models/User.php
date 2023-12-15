@@ -49,7 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
-    public function transactions()
+    public function BooksTransaction()
     {
         return $this->hasMany(BooksTransaction::class, 'id_user');
     }

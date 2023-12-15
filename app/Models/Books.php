@@ -18,7 +18,7 @@ class Books extends Model
         'stock_buku',
     ];
     
-    public function transactions()
+    public function BooksTransaction()
     {
         return $this->hasMany(BooksTransaction::class, 'id_buku');
     }
