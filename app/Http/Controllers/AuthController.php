@@ -188,6 +188,9 @@ class AuthController extends Controller
         if ($user && $user->email_verified_at == null) {
             return response(['message' => 'Email not verified. Please verify your email first.'], 401);
         }
+        if ($user && $user->role == 'Admin') {
+            return response(['message' => 'Admins are not allowed to log in.'], 401);
+        }
     
         if (Auth::guard('web')->attempt($loginData)) {
             $users = Auth::user();
@@ -214,9 +217,13 @@ class AuthController extends Controller
             'email' => 'required',
             'password' => 'required',
         ]);
+        $user = User::where('email', $loginData['email'])->first();
     
         if ($validate->fails()) {
             return response(['message' => $validate->errors()->first(), 'errors' => $validate->errors()], 400);
+        }
+        if ($user && $user->role == 'User') {
+            return response(['message' => 'Users are not allowed to log in.'], 401);
         }
         
     

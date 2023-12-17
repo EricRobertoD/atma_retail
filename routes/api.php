@@ -27,12 +27,12 @@ Route::post('logout', 'App\Http\Controllers\AuthController@logout');
 Route::middleware(['auth:sanctum', 'ability:web'])->group(function(){
 
     Route::get('profile', 'App\Http\Controllers\AuthController@profile');
-    Route::put('update', 'App\Http\Controllers\AuthController@update');
+    Route::post('update', 'App\Http\Controllers\AuthController@update');
     
     Route::post('bukuTransaksi', 'App\Http\Controllers\BookTransactionController@store');
     Route::get('bukuTransaksi', 'App\Http\Controllers\BookTransactionController@index');
     Route::put('pengembalianBuku/{booksTransaction}', 'App\Http\Controllers\BookTransactionController@pengembalian');
-    Route::delete('buku/{booksTransaction}', 'App\Http\Controllers\BookTransactionController@destroy');
+    Route::delete('bukuTransaksi/{booksTransaction}', 'App\Http\Controllers\BookTransactionController@destroy');
 
 });
 
