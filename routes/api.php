@@ -39,7 +39,9 @@ Route::middleware(['auth:sanctum', 'ability:web'])->group(function(){
 
 Route::middleware(['auth:sanctum', 'ability:admin'])->group(function(){
 
-    Route::put('update/{user}', 'App\Http\Controllers\AuthController@updateAdmin');
+    Route::post('update/{user}', 'App\Http\Controllers\AuthController@updateAdmin');
+    Route::get('user', 'App\Http\Controllers\AuthController@indexAdmin');
+    Route::delete('user/{user}', 'App\Http\Controllers\AuthController@destroyAdmin');
 
     Route::post('buku', 'App\Http\Controllers\BookController@store');
     Route::put('buku/{books}', 'App\Http\Controllers\BookController@update');

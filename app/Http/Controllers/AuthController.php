@@ -171,6 +171,33 @@ class AuthController extends Controller
         ], 200);
     }
 
+    public function indexAdmin(){
+        $user = User::all();
+
+        if(count($user) > 0){
+            return response([
+                'status' => 'success',
+                'data' => $user
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data' => null
+        ], 400); 
+    }
+
+
+    public function destroyAdmin(User $user){
+        $user->delete();
+    
+        return response([
+            'status' => 'success',
+            'message' => 'User deleted successfully',
+            'data' => $user
+        ], 200);
+    }
+
     public function loginUser(Request $request)
     {
         $loginData = $request->all();
